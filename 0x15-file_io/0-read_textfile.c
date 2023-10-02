@@ -1,48 +1,46 @@
 #include "main.h"
 
 /**
- * read_textfile - Reads a text file and prints it to POSIX standard output.
- * @filename: The name of the file to read.
- * @letters: The number of letters to read and print.
- * Return: The actual number of letters read and printed. 0 on failure.
+ * read_textfile - reads a text file and prints it to the standard output
+ * @filename: name of the file to be read
+ * @letters: number of letters to read and print
+ *
+ * Return: the number of letters printed, or 0 if it failed
  */
 ssize_t read_textfile(const char *filename, size_t letters)
 {
-	int file_descriptor;
-	char *buffer;
-	ssize_t bytes_read;
-	ssize_t num_letters;
+	int fd;
+	int s, t;
+	char *buf;
 
-	if (filename == NULL)
+	if (!filename)
+		return (0);
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		return (0);
+
+	buf = malloc(sizeof(char) * letters);
+	if (!buf)
+		return (0);
+
+	s = read(fd, buf, letters);
+	if (s < 0)
 	{
+		free(buf);
 		return (0);
 	}
-	file_descriptor = open(filename, O_RDONLY);
-	if (file_descriptor == -1)
+	buf[s] = '\0';
+
+	close(fd);
+
+	t = write(STDOUT_FILENO, buf, s);
+	if (t < 0)
 	{
+		free(buf);
 		return (0);
 	}
-	buffer = (char *)malloc(letters);
-	if (buffer == NULL)
-	{
-		close(file_descriptor);
-		return (0);
-	}
-	bytes_read = read(file_descriptor, buffer, letters);
-	if (bytes_read == -1)
-	{
-		free(buffer);
-		close(file_descriptor);
-		return (0);
-	}
-	num_letters = write(STDOUT_FILENO, buffer, bytes_read);
-	if (num_letters != bytes_read)
-	{
-		free(buffer);
-		close(file_descriptor);
-		return (0);
-	}
-	free(buffer);
-	close(file_descriptor);
-	return (num_letters);
+
+	free(buf);
+	return (t);
 }
